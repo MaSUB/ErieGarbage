@@ -1,86 +1,70 @@
-*{
-    margin:0;
-}
-body{
-	font-family: 'Karla', sans-serif;
-    font-size:1.1em;
-	color: black;
-	margin:0;
-    width: 100%;
-    background-color: darkslategrey;
-}
+* {
+  margin: 0; }
+
+body {
+  font-family: 'Karla', sans-serif;
+  font-size: 1.1em;
+  color: black;
+  margin: 0;
+  width: 100%;
+  background-color: darkslategrey; }
+
 .header {
-	width: 100%;
-	height:auto;
-	background-color: black;
-	text-align: center;
-}
+  width: 100%;
+  height: auto;
+  background-color: black;
+  text-align: center; }
+  .header ul {
+    list-style-type: none;
+    list-style-position: inside;
+    padding: 10px 0px;
+    width: 100%; }
+    .header ul li {
+      display: inline-block;
+      padding: 10px;
+      width: 12%;
+      border: 1px solid white; }
+    .header ul li:hover {
+      background-color: white; }
+    .header ul li:hover p {
+      color: black; }
+  .header .menu-btn {
+    text-decoration: none;
+    color: #ffffff;
+    padding: 15px 0; }
+  .header h1 {
+    font-size: 3.5em;
+    padding-top: 10px;
+    color: #ffffff; }
 
-.header ul{
-	list-style-type: none;
-	list-style-position: inside;
-	padding:10px 0px;
-	width: 100%;
-}
+.content-home {
+  padding: 40px 50px;
+  text-align: center; }
 
-.header ul li {
-	display: inline-block;
-	padding: 10px;
-	width:12%;
-	border: 1px solid white;
-}
+.content-row {
+  background-color: white;
+  display: inline-block;
+  padding: 35px;
+  margin: 15px 0; }
 
-.header .menu-btn {
-	text-decoration: none;
-	color: #ffffff;
-    padding:15px 0;
-}
+.home-man-of-month .row-text {
+  float: right;
+  width: 70%;
+  font-family: 'Lato', sans-serif; }
 
-.header li:hover{
-	background-color: white;
-}
+.home-man-of-month .row-img-left {
+  float: left;
+  width: 25%; }
 
-.header li:hover p{
-	color: black;
-}
+.home-man-of-month .row-img-left img {
+  width: 100%;
+  height: 100%; }
 
-.header h1{
-	font-size: 3.5em;
-	padding-top: 10px;
-	color: #ffffff;
-}
+.section-title {
+  font-size: 1.75em;
+  margin-bottom: 15px; }
 
-.content-home{
-    padding:40px 50px;
-    text-align: center;
-}
+.row-text {
+  text-align: justify; }
 
-.content-row{
-    background-color: white;
-    display: inline-block;
-    padding: 35px;
-    margin: 15px 0;
-}
-
-.home-man-of-month .row-text{
-    float: right;
-    width: 70%;
-    font-family: 'Lato', sans-serif;
-}
-
-.home-man-of-month .row-img-left{
-    float: left;
-    width: 25%;
-}
-.home-man-of-month .row-img-left img{
-    width:100%;
-    height:100%;
-}
-.section-title{
-    font-size: 1.75em;
-    margin-bottom: 15px;
-}
-
-.row-text{
-    text-align: justify;
-}
+/*# sourceMappingURL=stylesheet.css.map */
