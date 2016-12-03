@@ -48,3 +48,23 @@ $adminHeaderLoggedIn = '<!DOCTYPE html>
         </ul>
     </div>';
 ?>
+
+<?php //Not logged in
+$loggedOut = '<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>ErieGarbage</title>
+  <link rel="stylesheet" href="stylesheet.css" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Karla|Lato" rel="stylesheet">
+  </head>
+  <body>
+    <div class="header">
+        <h1 class="header-title">ErieGarbage</h1>
+        <ul>
+            <li><a href="userHome.php"><div class="menu-btn"><p>Home</p></div></a></li>
+            <li><a href="aboutUs.php"><div class="menu-btn"><p>About Us</p></div></a></li>
+            <li><a href="LogOut.php"><div class="menu-btn"><p>Log Out</p></div></a></li>
+        </ul>
+    </div>';
+?>

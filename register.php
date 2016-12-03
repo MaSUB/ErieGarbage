@@ -1,11 +1,11 @@
 <?php //    this is the content for the UserHome page.
 include 'header.php';
-echo $userHeaderLoggedIn;
+echo $loggedOut;
 ?>
 
         <div class="content-login">
             <div class="login-form">
-                <form id="login-form" action="course_list.html">
+                <form id="login-form" action="userHome.php">
                     <h1>Sign Up</h1>
                     <input type="text" name="firstName" placeholder="First Name"><br>
                     <input type="text" name="lastName" placeholder="Last Name"><br>
@@ -15,8 +15,8 @@ echo $userHeaderLoggedIn;
                     <input type="text" name="address" placeholder="Home Address"><br>
                     <input type="text" name="city" placeholder="City"><br>
                     <input type="text" name="zip" placeholder="Zip Code"><br>
-                    <input type="date" name="dateOfBirth" placeholder="  /  /    "><br>
-                    <button class=".button_sliding_bg" id="submit" href="userHome.php">Submit</button>
+                    <input type="date" name="dateOfBirth"><br>
+                    <button id="submit" href="userHome.php">Submit</button>
                 </form>
             </div>
         </div>
