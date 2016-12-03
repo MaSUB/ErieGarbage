@@ -1,6 +1,6 @@
 <?php //    this is the content for the UserHome page.
 include 'header.php';
-echo $userHeader;
+echo $userHeaderLoggedIn;
 ?>
         <div class="content-home">
             <div class="content-row imprt-dates">

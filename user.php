@@ -25,6 +25,22 @@ class user{
         $lastName = $n;
     }
 
+    public function getAddress(){
+        return $address;
+    }
+
+    public function setAddress($n){
+        $address = $n;
+    }
+
+    public function getEmail(){
+        return $email;
+    }
+
+    public function setEmail($n){
+        $email = $n;
+    }
+
     public function setPassword($oldPass, $newPass){
         if($oldPass == $password){
             $password = $newPass;

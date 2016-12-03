@@ -31,7 +31,8 @@ body {
   .header .menu-btn {
     text-decoration: none;
     color: #ffffff;
-    padding: 15px 0; }
+    padding: 15px 0;
+    cursor: pointer; }
   .header h1 {
     font-size: 3.5em;
     padding-top: 10px;
@@ -66,5 +67,51 @@ body {
 
 .row-text {
   text-align: justify; }
+
+.content-login {
+  text-align: center; }
+  .content-login .login-form {
+    width: 400px;
+    background-color: white;
+    padding: 35px;
+    margin: 15px auto; }
+    .content-login .login-form h1 {
+      padding: 0 0 15px 0; }
+    .content-login .login-form input {
+      margin-bottom: 10px;
+      width: 250px;
+      height: 20px; }
+    .content-login .login-form input[type="text"] {
+      padding: 10px;
+      border: solid 2px #dcdcdc;
+      transition: box-shadow 0.3s, border 0.3s; }
+    .content-login .login-form input[type="text"]:focus, .content-login .login-form input[type="text"].focus {
+      border: solid 2px #707070;
+      box-shadow: 0 0 5px 1px #969696; }
+    .content-login .login-form input[type="password"] {
+      padding: 10px;
+      border: solid 2px #dcdcdc;
+      transition: box-shadow 0.3s, border 0.3s; }
+    .content-login .login-form input[type="password"]:focus, .content-login .login-form input[type="password"].focus {
+      border: solid 2px #707070;
+      box-shadow: 0 0 5px 1px #969696; }
+    .content-login .login-form button {
+      width: 270px;
+      color: #31302B;
+      background: #FFF;
+      padding: 12px 17px;
+      margin: 25px auto;
+      border: 3px solid #31302B;
+      font-size: 14px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      border-radius: 2px;
+      display: block;
+      text-align: center;
+      cursor: pointer;
+      box-shadow: inset 0 0 0 0 #31302B; }
+    .content-login .login-form button:hover {
+      box-shadow: inset 0 100px 0 0 #31302B;
+      color: #FFF; }
 
 /*# sourceMappingURL=stylesheet.css.map */
