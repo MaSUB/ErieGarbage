@@ -8,6 +8,8 @@ body {
   margin: 0;
   width: 100%;
   background-color: darkslategrey; }
+  body a:-webkit-any-link {
+    text-decoration: none; }
 
 .header {
   width: 100%;
@@ -81,11 +83,13 @@ body {
       margin-bottom: 10px;
       width: 250px;
       height: 20px; }
-    .content-login .login-form input[type="text"] {
+    .content-login .login-form input[type="text"], .content-login .login-form input[type="date"] {
       padding: 10px;
+      color: #707070;
+      font-family: 'Karla', sans-serif;
       border: solid 2px #dcdcdc;
       transition: box-shadow 0.3s, border 0.3s; }
-    .content-login .login-form input[type="text"]:focus, .content-login .login-form input[type="text"].focus {
+    .content-login .login-form input[type="text"]:focus, .content-login .login-form input[type="text"].focus, .content-login .login-form input[type="date"].focus {
       border: solid 2px #707070;
       box-shadow: 0 0 5px 1px #969696; }
     .content-login .login-form input[type="password"] {
