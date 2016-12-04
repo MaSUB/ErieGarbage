@@ -118,4 +118,30 @@ body {
       box-shadow: inset 0 100px 0 0 #31302B;
       color: #FFF; }
 
+.content-bill {
+  width: 100%; }
+  .content-bill .content-row {
+    width: 100%; }
+  .content-bill .past-bills {
+    vertical-align: top;
+    width: 35%; }
+    .content-bill .past-bills .past-entry {
+      border: solid 2px black; }
+      .content-bill .past-bills .past-entry .name-column {
+        display: inline-block;
+        margin: 10px 15px; }
+      .content-bill .past-bills .past-entry .result-column {
+        display: inline-block;
+        margin: 10px 15px; }
+      .content-bill .past-bills .past-entry a {
+        color: white;
+        text-decoration: none; }
+      .content-bill .past-bills .past-entry .btn-column {
+        display: inline-block;
+        margin: 10px 15px;
+        color: white;
+        background-color: black; }
+        .content-bill .past-bills .past-entry .btn-column .btn-pay {
+          padding: 10px 25px; }
+
 /*# sourceMappingURL=stylesheet.css.map */
