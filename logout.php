@@ -18,8 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 exit;
             }
         } else
-            die('Illegal auth token');
+            // die('Illegal auth token');
     } else 
-        die('Cookie not set');    
+       // die('Cookie not set');    
 }
 ?>
