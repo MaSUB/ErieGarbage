@@ -1,0 +1,147 @@
+* {
+  margin: 0; }
+
+body {
+  font-family: 'Karla', sans-serif;
+  font-size: 1.1em;
+  color: black;
+  margin: 0;
+  width: 100%;
+  background-color: darkslategrey; }
+  body a:-webkit-any-link {
+    text-decoration: none; }
+
+.header {
+  width: 100%;
+  height: auto;
+  background-color: black;
+  text-align: center; }
+  .header ul {
+    list-style-type: none;
+    list-style-position: inside;
+    padding: 10px 0px;
+    width: 100%; }
+    .header ul li {
+      display: inline-block;
+      padding: 10px;
+      width: 12%;
+      border: 1px solid white; }
+    .header ul li:hover {
+      background-color: white; }
+    .header ul li:hover p {
+      color: black; }
+  .header .menu-btn {
+    text-decoration: none;
+    color: #ffffff;
+    padding: 15px 0;
+    cursor: pointer; }
+  .header h1 {
+    font-size: 3.5em;
+    padding-top: 10px;
+    color: #ffffff; }
+
+.content-home {
+  padding: 40px 50px;
+  text-align: center; }
+
+.content-row {
+  background-color: white;
+  display: inline-block;
+  padding: 35px;
+  margin: 15px 0; }
+
+.home-man-of-month .row-text {
+  float: right;
+  width: 70%;
+  font-family: 'Lato', sans-serif; }
+
+.home-man-of-month .row-img-left {
+  float: left;
+  width: 25%; }
+
+.home-man-of-month .row-img-left img {
+  width: 100%;
+  height: 100%; }
+
+.section-title {
+  font-size: 1.75em;
+  margin-bottom: 15px; }
+
+.row-text {
+  text-align: justify; }
+
+.content-login {
+  text-align: center; }
+  .content-login .login-form {
+    width: 400px;
+    background-color: white;
+    padding: 35px;
+    margin: 15px auto; }
+    .content-login .login-form h1 {
+      padding: 0 0 15px 0; }
+    .content-login .login-form input {
+      margin-bottom: 10px;
+      width: 250px;
+      height: 20px; }
+    .content-login .login-form input[type="text"], .content-login .login-form input[type="date"] {
+      padding: 10px;
+      color: #707070;
+      font-family: 'Karla', sans-serif;
+      border: solid 2px #dcdcdc;
+      transition: box-shadow 0.3s, border 0.3s; }
+    .content-login .login-form input[type="text"]:focus, .content-login .login-form input[type="text"].focus, .content-login .login-form input[type="date"].focus {
+      border: solid 2px #707070;
+      box-shadow: 0 0 5px 1px #969696; }
+    .content-login .login-form input[type="password"] {
+      padding: 10px;
+      border: solid 2px #dcdcdc;
+      transition: box-shadow 0.3s, border 0.3s; }
+    .content-login .login-form input[type="password"]:focus, .content-login .login-form input[type="password"].focus {
+      border: solid 2px #707070;
+      box-shadow: 0 0 5px 1px #969696; }
+    .content-login .login-form button {
+      width: 270px;
+      color: #31302B;
+      background: #FFF;
+      padding: 12px 17px;
+      margin: 0 auto 10px auto;
+      border: 3px solid #31302B;
+      font-size: 14px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      border-radius: 2px;
+      display: block;
+      text-align: center;
+      cursor: pointer;
+      box-shadow: inset 0 0 0 0 #31302B; }
+    .content-login .login-form button:hover {
+      box-shadow: inset 0 100px 0 0 #31302B;
+      color: #FFF; }
+
+.content-bill {
+  width: 100%; }
+  .content-bill .content-row {
+    width: 100%; }
+  .content-bill .past-bills {
+    vertical-align: top;
+    width: 35%; }
+    .content-bill .past-bills .past-entry {
+      border: solid 2px black; }
+      .content-bill .past-bills .past-entry .name-column {
+        display: inline-block;
+        margin: 10px 15px; }
+      .content-bill .past-bills .past-entry .result-column {
+        display: inline-block;
+        margin: 10px 15px; }
+      .content-bill .past-bills .past-entry a {
+        color: white;
+        text-decoration: none; }
+      .content-bill .past-bills .past-entry .btn-column {
+        display: inline-block;
+        margin: 10px 15px;
+        color: white;
+        background-color: black; }
+        .content-bill .past-bills .past-entry .btn-column .btn-pay {
+          padding: 10px 25px; }
+
+/*# sourceMappingURL=stylesheet.css.map */

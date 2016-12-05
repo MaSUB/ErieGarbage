@@ -1,0 +1,1 @@
+{"firstName":"Bobby","lastName":"DeNiro","email":"hi@hotmail.com","authValue":"f9f2b20f3e38c99c43d20a8aa65f0fe1","accountNumber":"6603229293","accountType":"USER_ACCOUNT","bills":[{"amount":100,"dueDate":"1","month":"December","isPaid":false,"userID":"6603229293","billID":"557051098296"}],"address":{"streetAddress":"Street Ave","zipCode":"11133","city":"Erie"}}
