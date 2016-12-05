@@ -51,4 +51,3 @@ if($_SERVER['REQUEST_METHOD'] === 'GET') {
         header('Location: /login.php?fail=true');
         
 }
-?>
