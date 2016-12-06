@@ -18,8 +18,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 exit;
             }
         } else
-            // die('Illegal auth token');
+            header("Location: /login.php");
+            ; // ('Illegal auth token');
     } else 
-       // die('Cookie not set');    
+        header('Location: /login.php')
+       ; // ('Cookie not set');    
 }
 ?>

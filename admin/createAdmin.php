@@ -44,6 +44,10 @@ class CreateAdminView extends View {
         header('Location: ' . View::LOGIN_PAGE);
     }
     
+    protected function printUnauthenticatedHeader() {
+        header('Location: ' . View::LOGIN_PAGE);
+    }
+    
     public function registerAdmin($firstName, $lastName, $email, $password) {
         if ($this->databaseController->createAndRegisterAdminAccount($firstName, $lastName, $email, $password))
             header('Location: ' . View::LOGIN_PAGE);

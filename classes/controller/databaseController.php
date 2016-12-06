@@ -5,6 +5,8 @@ require_once $rootDir . '/classes/input_validator.php';
 require_once $rootDir . '/classes/model/user.php';
 require_once $rootDir . '/classes/model/account.php';
 require_once $rootDir . '/classes/model/admin.php';
+require_once $rootDir . '/classes/view/view.php';
+
 
 class DatabaseController {
     // Constants declared as private static functions to assure privacy (php doesnt support private constants)
@@ -51,7 +53,7 @@ class DatabaseController {
             $this->failedLogins = $failedLogins;
         } else 
             // Couldn't read logins file
-            throw new Exception("Couldnt read failed logins file");
+            throw new Exception("Couldn't read failed logins file");
     }
     
     /*****************************/ 
@@ -90,7 +92,7 @@ class DatabaseController {
                     $success = true;
                     
                 } else
-                    die("Couldn't load account");
+                    throw new Exception("Couldn't load account");
             }
         } else {
             // log 'Invalid inputs'; 
@@ -142,9 +144,7 @@ class DatabaseController {
                     throw new Exception("Credentials file could not be read");
         
         return $accountNumber;
-    }
-    
-        
+    }       
         
     public function authenticateToken($authToken) {
     // Validates whether a token contains an active session
@@ -166,7 +166,7 @@ class DatabaseController {
                         if (time() < $authToken->expiry) {
                             if ($this->loadAccount($accountNumber)) {
                                 $valid = true;
-                            } else die('Couldnt load account');
+                            } else throw new Exception('Couldnt load account');
                         } else die('Expired token');
                     } else die('Token mismatch: ' . $authToken->token . ':' . $tokens->$accountNumber->token);
                 } else ;// ('Token not found locally');
@@ -180,8 +180,8 @@ class DatabaseController {
     
     private function generateAuthToken($accountNumber) {
     // Generates an auth token for the account number, and stores locally for future authentication
-    // Input: Verified account number to associate with auth token
-    // Output: Authentication token randomized value associated with account
+    // Input: Verified account number to associate with auth token (string)
+    // Output: Authentication token randomized value associated with account (string)
         
         // Generate random, secure 50 byte string and md5 hash it
         $randomToken = md5(openssl_random_pseudo_bytes(50));
@@ -202,7 +202,7 @@ class DatabaseController {
             $this->overwriteFile(self::TOKENS_FILE(), $tokens);
 
         } else {
-            throw new Exception("Tokens file cannot be found.");
+            throw new Exception("Tokens file cannot be read.");
         }
        
         $this->authToken = $authToken;
@@ -211,13 +211,12 @@ class DatabaseController {
     }
     
     private function setCookieAndRedirect() {
-        if ($this->authToken) {
+        if (isset($this->authToken)) {
             // Set the user's cookie
             setcookie('eg-auth', json_encode($this->authToken), time()+self::TOKEN_TIMEOUT(), '/');
             // Redirect home
-            header('Location: ' . '/home.php');
-            // Exit to assure code does not get executed.
-            exit;
+            header('Location: ' . View::HOME_PAGE);
+            exit; 
         }
     }
     
@@ -279,8 +278,13 @@ class DatabaseController {
             $serverIP = $_SERVER['REMOTE_ADDR'];
             
             // Push the time onto the array under 
-            if (isset($this->failedLogins[$serverIP]))
+            if (isset($this->failedLogins[$serverIP])) {
                 array_push($this->failedLogins[$serverIP], time());
+                
+                // Update the failed logins store   
+                $this->updateFailedLoginsFile();
+            }
+            
             
             else {
                 $this->failedLogins[$serverIP] = [ time() ];
@@ -335,10 +339,12 @@ class DatabaseController {
         if ($this->authenticated) {
             if ($this->getPermissions() === self::ACTIVE_ADMIN_PERMISSION()) {
                 $permissions = $this->readFile(self::PERMISSIONS_FILE());
-                $permissions[$accountNumber] = self::ACTIVE_ADMIN_PERMISSION();
-                
-                if ($this->overwriteFile(self::PERMISSIONS_FILE(), $permissionsObject)) 
-                    $success = true;
+                if (!($permissions === null)) {
+                    $permissions[$accountNumber] = self::ACTIVE_ADMIN_PERMISSION();
+
+                    if ($this->overwriteFile(self::PERMISSIONS_FILE(), $permissions)) 
+                        $success = true;
+                }
                 
             }
         }
@@ -349,27 +355,44 @@ class DatabaseController {
     /******************************/
     
     public function createAndRegisterAdminAccount($firstName, $lastName, $email, $password) {
-        $admin = new Admin($firstName, $lastName, $email, $password);
-        if (Admin::checkAccount($admin)) { 
-            
-            // Make sure user is not blocked for excessive requests
-            if ($this->verifyRequestLimit()) {
-                
-                // Check permissions
-                if ($this->getPermissions() === self::ACTIVE_ADMIN_PERMISSION()) {
+        $success = false;
+        
+        // Make sure user is not blocked for excessive requests
+        if ($this->verifyRequestLimit()) {
+        
+            // Check permissions
+            if ($this->getPermissions() === self::ACTIVE_ADMIN_PERMISSION()) {
 
+                if (validator::checkEmail($email) && validator::checkString($password)) {
                     // Calculate auth value
                     $authValue = hash('md5', $email . $password);
 
-                    
-                    $this->registerAdminAccount($account, $authValue);
-                }
-            }
-        
-        }
+                    $admin = new Admin($firstName, $lastName, $email, hash('md5', $email.$password));
+
+                    // Validate admin object
+                    if ($admin->successConstruct === true) { 
+                        
+                        // Set account number, if successful, move on
+                        if ($admin->setAccountNumber($this->generateNewAccountNumber())) {
+                            
+                            // Register admin account
+                            if ($this->registerAdminAccount($admin, $authValue))
+                                $success = true;
+                        } else
+                            ; // Couldn't set account number
+                    } else
+                        die("Account did not construct successfully");
+                } else
+                    die("Invalid input"); // Email or password is invalid
+            } else
+                die("Request limit exceeded");
+        } else
+            throw new Exception("Insufficient permissions to create admin account");
+
+        return $success;
     }
     
-    public function createAndRegisterAccount($firstName, $lastName, $email, $password, $address, $city, $zip, $dateOfBirth) {
+    public function createAndRegisterUserAccount($firstName, $lastName, $email, $password, $address, $city, $zip, $dateOfBirth) {
         // Takes registration form info, validates and creates a new account
         // Input: All account info (strings)
         // Output: Success boolean value (true/false)
@@ -394,7 +417,7 @@ class DatabaseController {
                             $userAccount = new User($firstName, $lastName, $email, $authValue, $addressObject, $dateOfBirth);
                             
                             // Register account into system
-                            $this->registerAdminAccount($userAccount, $authValue);
+                            $this->registerUserAccount($userAccount, $authValue);
                             $success = true;
                             
                         } else
@@ -408,14 +431,13 @@ class DatabaseController {
             
         } else {
             // Request limit exceeded
-            $this->markInvalidLogin();
             header('Location: /timeout.php'); // Request limit exceeded
             exit;
         }
         
         if ($success === false) {
-             $this->markInvalidLogin();
-            header('Location: /login.php');
+            $this->markInvalidLogin();
+            header('Location: /register.php?fail=true');
             exit;
         }
         
@@ -426,31 +448,34 @@ class DatabaseController {
     // Registers a new admin account into the system and saves it
     // Input: Account object
     // Output: Boolean with success value
+        if ($this->authenticated) {
+            if ($this->getPermissions() === self::ACTIVE_ADMIN_PERMISSION()) {
+                $this->saveAccountObject($account);
+                $this->createUserCredentialsEntry($account->getAccountNumber(), $authValue);
+                $this->setAdminPermissions($account->getAccountNumber());
+                $success = true;
+            }
+        }
         $success = false;
-        $account->setAccountNumber($this->generateNewAccountNumber());
         
-        $this->saveAccountObject($account);
-        $this->createUserCredentialsEntryForAccountNumber($accountNumber, $authValue);
-        $this->setAdminPermissions($accountNumber);
+        
+        return $success;
     }
     
-    private function registerAccount($account, $authValue) {
+    private function registerUserAccount($account, $authValue) {
     // Registers a new account into the system current object and saves it to system
     // Input: Account object
     // Output: Boolean with success value
         $success = false;
-            
-        // Set account
-        $this->activeAccount = $account;
         
         // Generate account number
-        $this->activeAccount->setAccountNumber($this->generateNewAccountNumber());
+        $account->setAccountNumber($this->generateNewAccountNumber());
         
         // Save account object
-        $this->saveAccount();
+        $this->saveAccountObject($account);
         
         // Save the user credentials as well
-        $this->createUserCredentialsEntry($authValue);
+        $this->createUserCredentialsEntry($account->getAccountNumber(), $authValue);
         
         // Set user permissions
         $this->setUserPermissions();
@@ -479,6 +504,48 @@ class DatabaseController {
     //  ******* FILE HANDLING ******* \\
     //  ***************************** \\
     
+    private static function readFile($fileName) {
+        $value = null;
+        
+        if (file_exists($fileName)) {
+            $file = fopen($fileName, 'r');
+            if (!($file === false)) {
+                // Read and decode json object from file
+                $object = json_decode(fread($file, filesize($fileName)), true);
+                fclose($file);
+
+                // If parsing/reading was successful
+                if (!($object === NULL)) {
+                    $value = $object;
+                } else
+                    throw new Exception("Error reading/parsing " . $fileName . " file");
+            } else 
+                throw new Exception("Error opening " . $fileName . " file");
+        } else
+            throw new Exception("Error: file " . $fileName . " does not exist");
+    
+        return $value;
+    }
+    
+    private static function overwriteFile($fileName, $data) {
+        $success = false;
+        
+        //if (file_exists($fileName)) {
+            $file = fopen($fileName, 'w+');
+            if (!($file === false)) {
+                // Read and decode json object from file
+                fwrite($file, json_encode($data));
+                fclose($file);
+                $success = true;
+
+            } else 
+                throw new Exception("Error opening " . $fileName . " file");
+        //} else
+          //  throw new Exception("Error: file " . $fileName . " does not exist");
+    
+        return $success;
+    }
+    
     private function loadAccount($accountNumber) {
     // Loads the account info for a registered account number.
     // Input: Verified AccountNumber string
@@ -487,20 +554,20 @@ class DatabaseController {
         $accountFileName = self::ACCOUNTS_FILE_DIR() . $accountNumber . '.json';
         $account = $this->readFile($accountFileName);
         if (!($account === null)) { 
-            
+
             // Assign to local class variable
             if ($account['accountType'] == Account::USER_ACCOUNT)
                 $this->activeAccount = User::load($account);
             else if ($account['accountType'] == Account::ADMINISTRATOR_ACCOUNT)
                 $this->activeAccount = Admin::load($account);
-            
+            else
+                throw new Exception("Couldn't load object");
             
             $this->authenticated = true;
             $success = true;
             
         } else
-            throw new Exception("Could not read account file.");
-                
+            throw new Exception("Could not read account file.");       
         
         return success;
     }
@@ -514,12 +581,12 @@ class DatabaseController {
             if ($this->overwriteFile($accountFileName, $account->exportJSON()))
                 $success = true;
         } else 
-            throw new Exception("Couldn't save account; it is invalid."); // Invalid account
+            ; // "Couldn't save account; it is invalid."
         
         return $success;
     }
     
-    public function saveAccount() {
+    public function saveActiveAccount() {
     // Saves the new account object onto the json file stores
         $success = false;
         if (User::validateAccount($this->activeAccount)) {
@@ -545,8 +612,7 @@ class DatabaseController {
             throw new Exception("Account file to delete does not exist.");
 
         return $success;
-    }
-    
+    }    
      
     public function deleteAccount() {
         if ($this->authenticated === true) {
@@ -555,7 +621,7 @@ class DatabaseController {
             $this->removePermissionsEntry();
             $this->deleteToken();
         } else
-            throw new Exception('Not authenticated');
+            header('Location: ' . View::UNAUTHORIZED_PAGE); // unauthenticated, therefore unauthorized to delete
     }
     
     private function deleteToken() {
@@ -593,9 +659,9 @@ class DatabaseController {
         $credentials = $this->readFile(self::CREDENTIALS_FILE());
         if (!($credentials === null)) {
             unset($credentials[$this->activeAccount->getAuthValue()]);
-                
             // Rewrite changes to file (overwrite)
             $this->overwriteFile(self::CREDENTIALS_FILE(), $credentials);
+            $success = true;
         }
         return $success;
     }
@@ -612,9 +678,8 @@ class DatabaseController {
         return $success;
     }
     
-     private function updateRecentRequestsFile() {
-        // Load auth failed ips
-         
+    private function updateFailedLoginsFile() {
+    // Merge class's failedLogins with store, and save file.
          $recentRequests = $this->readFile(self::FAILED_LOGINS_FILE());
          if (!($recentRequests === null)) {
              $recentRequests = array_merge($recentRequests, $this->failedLogins);
@@ -623,7 +688,7 @@ class DatabaseController {
              throw new Exception("Couldn't read failed logins file");
     }
     
-    private function createUserCredentialsEntryForAccountNumber($accountNumber, $authValue) {
+    private function createUserCredentialsEntry($accountNumber, $authValue) {
         $success = false;
         $credentials = $this->readFile(self::CREDENTIALS_FILE());
             
@@ -640,16 +705,16 @@ class DatabaseController {
             throw new Exception("Could not read credentials file");
         
         return $success;
-    }
+    }       
     
-    private function createUserCredentialsEntry($authValue) {
-        return $this->createUserCredentialsEntryForAccountNumber($this->activeAccount->getAccountNumber(), $authValue);
-    }
+    // *********************** \\
+    // **** Functionality **** \\
+    // *********************** \\
     
     public static function loadPickupTimes() {
     // Loads pickup times from json file and returns it
     // Output: Pickup times object or null if failed
-        $pickupTimes = null;
+
         $pickupTimes = self::readFile(self::PICKUP_TIMES_FILE());
         
         if (($pickupTimes === null)) {
@@ -658,53 +723,6 @@ class DatabaseController {
             
         return $pickupTimes;
     }
-    
-    private static function readFile($fileName) {
-        $value = null;
-        
-        if (file_exists($fileName)) {
-            $file = fopen($fileName, 'r');
-            if (!($file === false)) {
-                // Read and decode json object from file
-                $object = json_decode(fread($file, filesize($fileName)), true);
-                fclose($file);
-
-                // If parsing/reading was successful
-                if (!($object === NULL)) {
-                    $value = $object;
-                } else
-                    throw new Exception("Error reading/parsing " . $fileName . " file");
-            } else 
-                throw new Exception("Error opening " . $fileName . " file");
-        } else
-            throw new Exception("Error: file " . $fileName . " does not exist");
-    
-        return $value;
-    }
-    
-    private static function overwriteFile($fileName, $data) {
-        $success = false;
-        
-        if (file_exists($fileName)) {
-            $file = fopen($fileName, 'w+');
-            if (!($file === false)) {
-                // Read and decode json object from file
-                fwrite($file, json_encode($data));
-                fclose($file);
-                $success = true;
-
-            } else 
-                throw new Exception("Error opening " . $fileName . " file");
-        } else
-            throw new Exception("Error: file " . $fileName . " does not exist");
-    
-        return $value;
-    }
-            
-    
-    // *********************** \\
-    // **** Functionality **** \\
-    // *********************** \\
     
     public function getDuePayments() {    
     // Reads all bills and gets the ones that are due.
@@ -749,23 +767,28 @@ class DatabaseController {
         // Assume no permissions unless reassigned
         $success = false;
         
-        $permissions = $this->readFile(self::PERMISSIONS_FILE());
+        // Read files
+        $permissionsObj = $this->readFile(self::PERMISSIONS_FILE());
         $credentials = $this->readFile(self::CREDENTIALS_FILE());
-        if (!($permissions === null) && !($credentials === null)) {
+        
+        // Verify success reading
+        if (!($permissionsObj === null) && !($credentials === null)) {
+            // Authenticate admin
             if (isset($credentials[$adminAuthValue])) {
                 $adminAccountNumber = $credentials[$adminAuthValue];
 
-                if (isset($permissions[$adminAccountNumber])) {
+                if (isset($permissionsObj[$adminAccountNumber])) {
                     // Get permissions for the account number.
-                    $permissions = $permissions[$adminAccountNumber];
+                    $permissions = $permissionsObj[$adminAccountNumber];
                     if ($permissions === self::ACTIVE_ADMIN_PERMISSION()) {
                         $this->loadAccount($accountNumber);
                         $success = true;
-                    }
+                    } else 
+                        header('Location: ' . View::UNAUTHORIZED_PAGE); // insufficient permissions
                 } else 
-                    header('Location: ' . View::UNAUTHORIZED_PAGE); // permission for user not found: unauthorized
+                    header('Location: ' . View::LOGIN_PAGE); // permission for user not found: login
             } else 
-                throw new Exception("Could not find credentials for user");
+                ; // "Could not find credentials for user"
         } else
             throw new Exception("Couldn't read permissions or credentials files");
         
@@ -787,15 +810,15 @@ class DatabaseController {
 
                 if (Bill::checkBill($bill)) {
                     $databaseController = new DatabaseController();
-                    $databaseController->adminLoad($this->activeUser->getAuthValue(), $accountNumber);
+                    $databaseController->adminLoad($this->activeAccount->getAuthValue(), $accountNumber);
                     
 
                 } else
-                    die("Invalid bill");
+                    ; // "Invalid bill";
             } else 
-                die('Invalid account number');
+                ; // 'Invalid account number'; 
         } else
-            header('Location: ' . View::UNAUTHORIZED_PAGE);
+            header('Location: ' . View::UNAUTHORIZED_PAGE); // insufficient permissions
         return $success;
         
     }
@@ -852,28 +875,37 @@ class DatabaseController {
     }
     
     public function addNewBillToAll() {
-        $credentials = $this->readFile(self::CREDENTIALS_FILE());
-        // Verify file is read and parsed successfully
-        if (!($credentials === null)) {
-            foreach($credentials as $accountNumber) {
-                $this->loadAccount($accountNumber);
-                    
-                // Check for appropriate account permissions
-                if ($this->getPermissions() === self::ACTIVE_ADMIN_PERMISSION()) {
-                    // Generate unique bill id
-                    $billID = $this->generateBillID();
-                    
-                    // Add bill with default amount, date, and current month, and generated id
-                    $this->activeAccount->addBill(Bill::BILL_AMOUNT, Bill::BILL_DUE_DATE, date('F'), $billID);
+        
+        // Check for appropriate account permissions
+        if ($this->getPermissions() === self::ACTIVE_ADMIN_PERMISSION()) {
+        
+            $credentials = $this->readFile(self::CREDENTIALS_FILE());
+        
+            // Verify file is read and parsed successfully
+            if (!($credentials === null)) {
+                foreach($credentials as $accountNumber) {
+                    $dbController = new DatabaseController();
+                    $dbController->loadAccount($accountNumber);
 
-                    $this->saveBillToFile($billID, $this->activeAccount->getAccountNumber());
-                    $this->saveAccount();
+                    if ($dbController->getPermissions() == self::ACTIVE_USER_PERMISSION()) {
+                        
+                        // Generate unique bill id
+                        $billID = $dbController->generateBillID();
+
+                        // Add bill with default amount, date, and current month, and generated id
+                        $dbController->getActiveAccount()->addBill(Bill::BILL_AMOUNT, Bill::BILL_DUE_DATE, date('F'), $billID);
+
+                        $dbController->saveBillToFile($billID, $this->activeAccount->getAccountNumber());
+                        $dbController->saveActiveAccount();
+
+                    } else
+                        ; // Bill is not applicable for any account other than an active user
+                }
                 
-                } else
-                    ; // Bill is not applicable for any account other than an active user
-            }
+            } else
+                throw new Exception("Credentials file could not be read.");
         } else
-            throw new Exception("Credentials file could not be read.");
+            header('Location: ' . $View::UNAUTHORIZED_PAGE);
     }
 
     public function updatePassword($newPassword, $oldPassword) {
@@ -950,14 +982,14 @@ class DatabaseController {
                             
                     } else if (!($newPassword === '')) {
                         if (validator::checkPassword($newPassword))
-                            $authValue = hash('md5', $this->activeUser->getEmail() . $newPassword);
+                            $authValue = hash('md5', $this->activeAccount->getEmail() . $newPassword);
                     }
 
                     // Update account object
                     if ($this->activeAccount->updateAccount($firstName, $lastName, $email, $authValue, $streetAddress, $zipCode, $city, $dateOfBirth)) {
                         // Success updating account
-                        $this->saveAccount();
-                        if ($this->createUserCredentialsEntry($authValue))
+                        $this->saveActiveAccount();
+                        if ($this->createUserCredentialsEntry($this->activeAccount, $authValue))
                             $success = true;
                     } else
                         ;// throw new Exception("Could not update account");

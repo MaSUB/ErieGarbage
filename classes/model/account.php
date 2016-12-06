@@ -16,6 +16,8 @@ abstract class Account {
     protected $accountNumber; // unique account number string
     protected $accountType; // user account or admin account constants 
     
+    protected $successConstruct = false;  // is set to true if objects constructor properly sets all properties
+
     
     protected function setAdmin() {
         $this->accountType = self::ADMINISTRATOR_ACCOUNT;
@@ -24,6 +26,11 @@ abstract class Account {
     protected function setUser() {
         $this->accountType = self::USER_ACCOUNT;
     }
+       
+    public function getAccountType() {
+        return $this->accountType;
+    }
+    
     
     protected function setFirstName($newName) {
         if (validator::checkString($newName)) {
@@ -79,11 +86,6 @@ abstract class Account {
     public function getAccountNumber() {
         return $this->accountNumber;
     }
-    
-    public function getAccountType() {
-        return $this->accountType;
-    }
-    
    
     public function setAccountNumber($accountNumber) {
         $success = false;
@@ -91,11 +93,11 @@ abstract class Account {
             $this->accountNumber = $accountNumber;
             $success = true;
         } else
-            ;// invalid account number
+            throw new Exception('// invalid account number' . $accountNumber);
         return $success;
     }
     
-    protected function exportJSON() {
+    public function exportJSON() {
         return array(
             "firstName" => $this->firstName,
             "lastName" => $this->lastName,
@@ -109,7 +111,7 @@ abstract class Account {
     // Validator functions
     public static function validateAccount($account) {
         $validAccount = false;
-        
+
         // Verify all properties are set
         if (isset($account->firstName) && isset($account->lastName) && isset($account->email) && isset($account->authValue)) {
             if (isset($account->accountNumber) && isset($account->accountType)) { 
@@ -134,7 +136,7 @@ abstract class Account {
             } else
                 throw new Exception('// accountNumber or type not set');
         } else 
-            throw new Exception('// first, last name, email, or authvalue not set');
+            throw new Exception("first, last name, email, or authvalue not set");
         
         return $validAccount;
     }
@@ -154,6 +156,12 @@ abstract class Account {
         wipeString($this->accountNumber);
         $this->accountType = 0;
     }
+    
+    public function success() {
+        return $this->successConstruct;
+    }
+    
+    public static abstract function load($account);
 }
 
 ?>

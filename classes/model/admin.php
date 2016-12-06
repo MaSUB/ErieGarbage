@@ -9,28 +9,40 @@ class Admin extends Account {
         // Input Types: string, string, string, string, address object 
 
         // All function are inherited from Account superclass
-        $this->setFirstName($newFirstName);
-        $this->setLastName($newLastName);
-        $this->setEmail($newEmail);
-        $this->setAuthValue($newPassword);
+        $a = $this->setFirstName($newFirstName);
+        $b = $this->setLastName($newLastName);
+        $c = $this->setEmail($newEmail);
+        $d = $this->setAuthValue($authValue);
+        
         $this->setAdmin();
+    
+        // If all values were assigned properly
+        if ($a && $b && $c && $d) 
+            // Mark as successfully constructed
+            $this->successConstruct = true;
     }
     
     public static function checkAccount($account) {
+        // Make sure superclass is valid and checks out
         if (parent::validateAccount($account)) 
+            // Do other subclass checking
             return true;
+        
+        return false;
     }
     
     public static function load($adminObject) {
         $admin = null;
-        if (isset($adminObject[firstName]) && isset($adminObject[lastName]) && isset($adminObject[email]) && isset($adminObject[authValue])) {
-            if (validator::checkName($adminObject[firstName]) && validator::checkName($adminObject[lastName])){
-                if (validator::checkEmail($adminObject[email]) && validator::checkString($adminObject[authValue])) {
-                    $admin = new Admin($adminObject[firstName], $adminObject[lastName], $adminObject[email], $adminObject[authValue]);
-                }
-            }
-        }
+        $admin = new Admin($adminObject[firstName], $adminObject[lastName], $adminObject[email], $adminObject[authValue]);
         
+        if ($admin->success()) {
+            $admin->setAccountNumber($adminObject[accountNumber]);
+
+            if (self::checkAccount($admin)) {
+                ; // Success
+            } else
+                throw new Exception("Invalid admin account being loaded");
+        }
         return $admin;
     }
 }

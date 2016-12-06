@@ -47,6 +47,10 @@ class DuePaymentsView extends View{
         header('Location: ' . View::LOGIN_PAGE);
     }
     
+    protected function printUnauthenticatedHeader() {
+        header('Location: ' . View::LOGIN_PAGE);
+    }
+    
     private function printDuePayments() {
         $dueBills = $this->databaseController->getDuePayments();
         foreach($dueBills as $bill) {

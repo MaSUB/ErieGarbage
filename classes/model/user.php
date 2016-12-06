@@ -12,23 +12,28 @@ class User extends Account {
     private $address; // address object
     private $disputes; // array of dispute objects
     private $paymentTypes; // array of payment types
-    public $success = true;
     
    function __construct($newFirstName, $newLastName, $newEmail, $newAuthValue, $address, $dateOfBirth) {
        // Input Types:     string,       string,       string,     string,   address object,   string
               
-       $this->setFirstName($newFirstName);
-       $this->setLastName($newLastName);
-       $this->setEmail($newEmail);
-       $this->setAuthValue($newAuthValue);
-       $this->setAddress($address);
-       $this->dateOfBirth = $dateOfBirth;
-       $this->setUser();
+       $a = $this->setFirstName($newFirstName);
+       $b = $this->setLastName($newLastName);
+       $c = $this->setEmail($newEmail);
+       $d = $this->setAuthValue($newAuthValue);
+       $e = $this->setAddress($address);
+       $f = $this->setDateOfBirth($dateOfBirth);
        
+       // If all properties were successfully set
+       if ($a && $b && $c && $d && $e && $f)
+           // Mark successful construction
+           $this->successConstruct = true;
        
        $this->bills = array();
        $this->disputes = array();
        $this->paymentTypes = array();
+       
+       // Set type to user
+       $this->setUser();
     }
     
     public function addBill($amount, $due, $month, $billID) {
@@ -101,6 +106,8 @@ class User extends Account {
     
     public function exportJSON() {
         $object = parent::exportJSON();
+        
+        $object['dateOfBirth'] = $this->dateOfBirth;
         
         // Iterate through all bills
         $billsArray = array();
@@ -175,16 +182,13 @@ class User extends Account {
         return $success;
     }
     
-    public static function checkAccountObject($accountObject) {
-        
-    }
-    
     public static function load($accountObject){
     // Input: stdClass object loaded from JSON
     // Output: User object with same properties
         $account = null;
         $account = new User($accountObject[firstName], $accountObject[lastName], $accountObject[email], $accountObject[authValue], Address::load($accountObject[address]), $accountObject[dateOfBirth]);
-        if ($account->success) {
+        
+        if ($account->success()) {
             
             $bills = [];
             foreach($accountObject[bills] as $bill) {
@@ -194,13 +198,13 @@ class User extends Account {
             
             $account->setBills($bills);
             $account->setAccountNumber($accountObject[accountNumber]);
-            
+
             if (self::checkAccount($account)) 
                 ; // Success
             else
                 throw new Exception("Invalid loading");
         } else
-            throw new Exception("Account unable to properly load");
+            throw new Exception("User account unable to properly load");
     
         return $account;
     }

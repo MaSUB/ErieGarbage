@@ -9,6 +9,7 @@ abstract class View {
     const LOGIN_PAGE = '/login.php';
     const LOGOUT_PAGE = '/logout.php';
     const UNAUTHORIZED_PAGE = '/unauthorized.php';
+    const HOME_PAGE = '/home.php';
     
     protected $loggedIn; // boolean value
     protected $databaseController; // database controller object
@@ -52,9 +53,11 @@ abstract class View {
         } else if ($this->permissions == DatabaseController::NO_PERMISSIONS()) {
             $this->printUnauthenticatedHeader();
             $this->printUnauthenticatedBody();
-        } else
-            die("ERROR RENDERING VIEW");
+        } else {
+            throw new Exception("Permissions not assigned?");
+        }
         
+        // Closing body and html tags
         echo '</body></html>';
     }
     

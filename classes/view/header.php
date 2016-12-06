@@ -56,7 +56,7 @@ class Header {
             <h1 class="header-title">ErieGarbage</h1>
             <ul>
                 <li><a href="/home.php"><div class="menu-btn"><p>Home</p></div></a></li>
-                <li><a href="/admin/duePaymentsView.php"><div class="menu-btn"><p>View Due Payments</p></div></a></li>
+                <li><a href="/admin/duePaymentsView.php"><div class="menu-btn"><p>Due Payments</p></div></a></li>
                 <li><a href="/admin/createAdmin.php"><div class="menu-btn"><p>Create Admin</p></div></a></li>
                 <li><a href="/admin/findCustomer.php"><div class="menu-btn"><p>Find Customer</p></div></a></li>
                 <li><a href="/admin/adminComplaints.php"><div class="menu-btn"><p>Complaints</p></div></a></li>
