@@ -2,6 +2,7 @@
 $rootDir = realpath($_SERVER["DOCUMENT_ROOT"]);
 require_once $rootDir . '/classes/view/Header.php';
 require_once $rootDir .  '/classes/view/View.php';
+require_once $rootDir . '/classes/controller/UserController.php';
 
 class AccountSettingsView extends View {
     
@@ -14,11 +15,12 @@ class AccountSettingsView extends View {
     const FAIL_UPDATING_SETTINGS = 3;
     
     function __construct() {
-        parent::__construct();
+        $this->clientController = new UserController();
+        $this->permissions = $this->clientController->getPermissions();
         
         // Only users are allowed to view
         if (!($this->permissions === DatabaseController::ACTIVE_USER_PERMISSION()))
-            header('Location: /unauthorized.php');
+            header('Location: ' . View::UNAUTHORIZED_PAGE);
         
     }
     
@@ -29,7 +31,7 @@ class AccountSettingsView extends View {
     protected function printUserBody() {
         if ($this->option === self::USER_SETTINGS) {
             
-            $account = $this->databaseController->getActiveAccount();
+            $account = $this->clientController->getActiveAccount();
             $address = $account->getAddress();
 
             $firstName = $account->getFirstName();
@@ -42,6 +44,7 @@ class AccountSettingsView extends View {
 
             echo '<div class="content-home">
             <div class="content-row">
+                <p>' . (isset($this->message) ? $this->message : '') . '</p><br>
                 <form action="/user/accountSettings.php" method="post">
                     <p>First Name: </p><input type="text" placeholder="'. $firstName . '" name="firstName"><br>
                     <p>Last Name: </p><input type="text" placeholder="' . $lastName . '" name="lastName"><br>
@@ -85,7 +88,11 @@ class AccountSettingsView extends View {
     }
     
     public function getController() {
-        return $this->databaseController;
+        return $this->clientController;
+    }
+    
+    public function setMessage($message) {
+        $this->message = $message;
     }
 
 }
@@ -93,6 +100,10 @@ class AccountSettingsView extends View {
 // Get means user wants to see and modify his info
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $accountSettingsView = new AccountSettingsView();
+    
+    if (isset($_GET['msg'])) 
+        $accountSettingsView->setMessage($_GET['msg']);
+    
     $accountSettingsView->option = AccountSettingsView::USER_SETTINGS;
     $accountSettingsView->renderPage();
     

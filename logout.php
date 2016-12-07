@@ -8,8 +8,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (isset($_COOKIE['eg-auth'])) {
         $authCookie = json_decode($_COOKIE['eg-auth']);
         if (validator::checkAuthToken($authCookie)) {  
-            $controller = new DatabaseController();
-            if ($controller->authenticateToken($authCookie)) {
+            $controller = new ClientController();
+            if (!($controller->authenticateToken($authCookie) === null)) {
+                
                 // Authentication successful
                 $controller->logout();
                 

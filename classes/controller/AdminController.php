@@ -4,6 +4,10 @@ require_once $rootDir . '/classes/controller/ClientController.php';
 
 class AdminController extends ClientController {
     
+    function __construct() {
+
+    }
+    
     public function createAndRegisterAdminAccount($firstName, $lastName, $email, $password) {
         $success = false;
         
@@ -34,18 +38,62 @@ class AdminController extends ClientController {
                             if ($this->databaseController->registerAdminAccount($admin, $authValue))
                                 $success = true;
                         } else
-                            ; // Couldn't set account number
-                    } else
-                        die("Account did not construct successfully");
-                } else
-                    die("Invalid input"); // Email or password is invalid
-            } else
-                die("Request limit exceeded");
-        } else
-            throw new Exception("Insufficient permissions to create admin account");
-
+                            throw new Exception("Couldn't set account number");
+                    } else {
+                        Logger::logError(Logger::INVALID_INPUT_ERROR);
+                        header("Location: " . View::REGISTER_ADMIN_PAGE . "?fail=true");
+                    }
+                } else {
+                    Logger::logError(Logger::INVALID_INPUT_ERROR);
+                    header("Location: " . View::REGISTER_ADMIN_PAGE . "?fail=true");
+                }
+            } else {
+                Logger::logError(Logger::INSUFFICIENT_PERMISSIONS_ERROR);
+                header("Location: " . View::UNAUTHORIZED_PAGE);
+            }
+                
+        } else {
+            if (validator::checkIP($_SERVER['REMOTE_ADDR']))
+                $ip = $_SERVER['REMOTE_ADDR'];
+            else
+                $ip = "unsafe ip address";
+                
+            Logger::logError(Logger::REQUEST_LIMIT_EXCEEDED, $ip);
+            header('Location: ' . View::TIMEOUT_PAGE);
+        }
+        
         return $success;
     }
+    public function createBillForUser($accountNumber, $bill) {
+    // Creates a bill object for the user
+    // Input: Account number string and bill object
+    // Output: Success value (true/false)
+        $success = false;
+        
+        // Make sure active user is an admin
+        if ($this->databaseController->getPermissions() === self::ACTIVE_ADMIN_PERMISSION()) {
+
+            if (validator::checkAccountNumber($accountNumber)) {
+                $bill->setBillID($this->databaseController->generateBillID());
+                $bill->setAccountID($accountNumber);
+
+                if (Bill::checkBill($bill)) {
+                    $databaseController = new DatabaseController();
+                    $databaseController->adminLoad($this->activeAccount->getAuthValue(), $accountNumber);
+                    
+
+                } else
+                    ; // "Invalid bill";
+            } else 
+                ; // 'Invalid account number'; 
+        } else
+            header('Location: ' . View::UNAUTHORIZED_PAGE); // insufficient permissions
+        return $success;
+        
+    }
+    
+    
+  
 }
 
 ?>

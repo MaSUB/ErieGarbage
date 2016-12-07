@@ -4,7 +4,7 @@ $rootDir = realpath($_SERVER["DOCUMENT_ROOT"]);
 require_once $rootDir . '/classes/model/Account.php';
 require_once $rootDir . '/classes/security/InputValidator.php'; 
 
-class Admin extends Account {
+class AdminAccount extends Account {
     function __construct($newFirstName, $newLastName, $newEmail, $authValue) {
         // Input Types: string, string, string, string, address object 
 
@@ -24,7 +24,7 @@ class Admin extends Account {
     
     public static function checkAccount($account) {
         // Make sure superclass is valid and checks out
-        if (parent::validateAccount($account)) 
+        if (parent::checkAccount($account)) 
             // Do other subclass checking
             return true;
         

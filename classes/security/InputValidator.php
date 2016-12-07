@@ -134,8 +134,7 @@ class validator {
         $valid = false;
         
         if (self::checkString($authValue)) {
-            if (strlen($authValue) === self::TOKEN_LENGTH) 
-                $valid = true;
+            $valid = true;
         }
         
         return $valid;

@@ -1,18 +1,20 @@
 <?php //    this is the content for the UserHome page.
 $rootDir = realpath($_SERVER["DOCUMENT_ROOT"]);
 require_once $rootDir . '/classes/view/Header.php';
-require_once $rootDir .  '/classes/view/View.php';
+require_once $rootDir . '/classes/view/View.php';
+require_once $rootDir . '/classes/controller/UserController.php';
 
 class GarbageDetailsView extends View {
     
     private $garbageDetails = ""; // html code for garbage details
-
     
-    function __construct() {
-        parent::__construct();
-           
+    function __construct() {           
         // Set default timezone
         date_default_timezone_set('America/New_York');
+        
+        // Initialize controller
+        $this->clientController = new UserController();
+        $this->permissions = $this->clientController->getPermissions();
         
         // Only users are allowed to view
         if (!($this->permissions === DatabaseController::ACTIVE_USER_PERMISSION()))
@@ -51,7 +53,7 @@ class GarbageDetailsView extends View {
         $success = false;
         
         // Read pickup times file
-        $pickupTimes = $this->databaseController->loadPickupTimes();
+        $pickupTimes = $this->clientController->loadPickupTimes();
         
         // Make sure file was read properly
         if (!($pickupTimes === null)) {  

@@ -109,7 +109,7 @@ abstract class Account {
     }
     
     // Validator functions
-    public static function validateAccount($account) {
+    public static function checkAccount($account) {
         $validAccount = false;
 
         // Verify all properties are set

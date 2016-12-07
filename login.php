@@ -1,7 +1,9 @@
 <?php 
-require_once 'classes/input_validator.php';
-require_once 'classes/controller/databaseController.php';
-require_once 'classes/view/header.php';
+$rootDir = realpath($_SERVER["DOCUMENT_ROOT"]);
+
+require_once $rootDir . '/classes/security/InputValidator.php';
+require_once $rootDir . '/classes/controller/ClientController.php';
+require_once $rootDir . '/classes/view/Header.php';
 
 const LOGIN_MESSAGE = 'Login failed: invalid credentials.';
 
@@ -39,7 +41,7 @@ if($_SERVER['REQUEST_METHOD'] === 'GET') {
         $email = validator::cleanInput($_POST['email']);
         $password = validator::cleanInput($_POST['password']);
         
-        $controller = new DatabaseController();
+        $controller = new ClientController();
         if ($controller->authenticate($email, $password)) {
             //echo 'Login successful';
             header('Location: /home.php'); // Logged in, redirect to home

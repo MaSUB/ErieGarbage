@@ -1,6 +1,6 @@
 <?php //    this is the content for the UserHome page.
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    require_once 'classes/view/header.php';
+    require_once 'classes/view/Header.php';
     echo Header::LOGGED_OUT;
 ?>
         <div class="content-login">
@@ -25,9 +25,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 <?php
 } else if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($_POST['password'] === $_POST['verifyPassword']) {
-        require_once 'classes/controller/databaseController.php';
-        $dbController = new DatabaseController();
-        if ($dbController->createAndRegisterAccount($_POST['firstName'], $_POST['lastName'], $_POST['email'], $_POST['password'], $_POST['address'], $_POST['city'], $_POST['zip'], $_POST['dateOfBirth']))
+        require_once 'classes/controller/ClientController.php';
+        $dbController = new ClientController();
+        if ($dbController->createAndRegisterUserAccount($_POST['firstName'], $_POST['lastName'], $_POST['email'], $_POST['password'], $_POST['address'], $_POST['city'], $_POST['zip'], $_POST['dateOfBirth']))
             header('Location: ' . View::LOGIN_PAGE);
     } else
         echo 'Password mismatch';;

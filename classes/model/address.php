@@ -8,10 +8,15 @@ class address {
     public $zipCode; // int
     public $city; // string
     
+    protected $successConstruct = false;
+    
     public function __construct($street, $city, $zip) {
-        $this->streetAddress = $street;
-        $this->zipCode = $zip;
-        $this->city = $city;
+        $a = $this->streetAddress = $street;
+        $b = $this->zipCode = $zip;
+        $c = $this->city = $city;
+        
+        if ($a && $b && $c)
+            $this->successConstruct = true;
     }
     
     public function getStreetAddress() {
@@ -84,6 +89,10 @@ class address {
         return array("streetAddress" => $this->streetAddress, 
                      "zipCode" => $this->zipCode, 
                      "city" => $this->city);
+    }
+    
+    public function success() {
+        return $this->successConstruct;
     }
     
     

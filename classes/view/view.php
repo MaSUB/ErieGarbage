@@ -1,7 +1,7 @@
 <?php
 $rootDir = realpath($_SERVER["DOCUMENT_ROOT"]);
 
-require_once $rootDir . '/classes/controller/DatabaseController.php';
+require_once $rootDir . '/classes/controller/ClientController.php';
 require_once $rootDir . '/classes/view/Header.php';
 
 abstract class View {
@@ -9,43 +9,26 @@ abstract class View {
     // Define constants for page locations to be used in redirecting the client
     const LOGIN_PAGE = '/login.php';
     const LOGOUT_PAGE = '/logout.php';
-    const REGISTER_PAGE = '/register.php';
+    const USER_REGISTER_PAGE = '/register.php';
     const UNAUTHORIZED_PAGE = '/unauthorized.php';
     const HOME_PAGE = '/home.php';
+    const ADMIN_REGISTER_PAGE = '/admin/createAdmin.php';
+    const TIMEOUT_PAGE = '/timeout.php';
+    const ACCOUNT_SETTINGS_PAGE = '/user/accountSettings.php';
     
     protected $loggedIn; // boolean value
-    protected $databaseController; // database controller object
+    protected $clientController; // database controller object
     protected $permissions;
     
     function __construct() {
-        $success = false;
-        // Make sure the Cookie and its values exist
-        if (isset($_COOKIE['eg-auth'])) {
-            $authToken = json_decode($_COOKIE['eg-auth']);
-
-            $this->databaseController = new DatabaseController();
-            $success = $this->databaseController->authenticateToken($authToken);
-            if ($success) {
-                // Success authentication
-                $this->permissions = $this->databaseController->getPermissions();  
-                $this->loggedIn = true;
-            } else
-                header('Location: '. self::LOGOUT_PAGE);
-        } else
-            // Not authenticated, redirect to login.php
-            header('Location: ' . self::LOGIN_PAGE);
-        
-        if (!$success) {
-            // Not authenticated, redirect to login.php
-            header('Location: ' . self::LOGIN_PAGE);
-        }
+        $this->clientController = new ClientController();
+        $this->permissions = $this->clientController->getPermissions();
     }
     
     // HTML ELEMENTS
     
     // Function to be called by view subclasses to render the page including header
     public function renderPage() {
-
         if ($this->permissions == DatabaseController::ACTIVE_USER_PERMISSION()) {
             $this->printUserHeader();
             $this->printUserBody();

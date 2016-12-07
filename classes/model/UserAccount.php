@@ -129,9 +129,9 @@ class UserAccount extends Account {
             
     }
     
-    public function checkAccount($account) {
+    public static function checkAccount($account) {
         // Make sure superclass is valid and checks out
-        if (parent::validateAccount($account)) {
+        if (parent::checkAccount($account)) {
             // Do other subclass checking
             return true;
         }
@@ -186,7 +186,7 @@ class UserAccount extends Account {
     // Input: stdClass object loaded from JSON
     // Output: User object with same properties
         $account = null;
-        $account = new User($accountObject[firstName], $accountObject[lastName], $accountObject[email], $accountObject[authValue], Address::load($accountObject[address]), $accountObject[dateOfBirth]);
+        $account = new UserAccount($accountObject[firstName], $accountObject[lastName], $accountObject[email], $accountObject[authValue], Address::load($accountObject[address]), $accountObject[dateOfBirth]);
         
         if ($account->success()) {
             

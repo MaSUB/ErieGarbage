@@ -1,7 +1,7 @@
 <?php
-require_once 'classes/controller/databaseController.php';
-require_once 'classes/view/header.php';
-require_once 'classes/view/view.php';
+require_once 'classes/controller/DatabaseController.php';
+require_once 'classes/view/Header.php';
+require_once 'classes/view/View.php';
 
 class HomeView extends View{
     
