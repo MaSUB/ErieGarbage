@@ -33,7 +33,7 @@ class AdminAccount extends Account {
     
     public static function load($adminObject) {
         $admin = null;
-        $admin = new Admin($adminObject[firstName], $adminObject[lastName], $adminObject[email], $adminObject[authValue]);
+        $admin = new AdminAccount($adminObject[firstName], $adminObject[lastName], $adminObject[email], $adminObject[authValue]);
         
         if ($admin->success()) {
             $admin->setAccountNumber($adminObject[accountNumber]);

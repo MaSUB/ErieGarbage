@@ -7,13 +7,10 @@ class HomeView extends View{
     
     function __construct() {
         parent::__construct();
-        
-        
-        
     }
     
-    // HTML ELEMENTS
     
+    // Abstract functions of View
     protected function printUserBody() {
         echo $this->userHome;
     }
@@ -29,6 +26,9 @@ class HomeView extends View{
     protected function printUnauthenticatedBody() {
         header('Location: ' . View::LOGIN_PAGE);
     }
+    
+    // HTML ELEMENTS
+
 
     // Define userHome outline
     private $userHome = '<div class="content-home">

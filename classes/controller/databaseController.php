@@ -263,7 +263,8 @@ class DatabaseController {
     public function verifyRequestLimit() {
     // Verifies the user's ip against the log of incorrect logins. 
     // Output: Returns false if the request limit was exceeded by user, true otherwise.
-    
+        $success = false;
+        
         if (validator::checkIP($_SERVER['REMOTE_ADDR'])) {
             $ip = $_SERVER['REMOTE_ADDR'];
             // Get the recent ip requests logged in failedLogins variable.
@@ -302,11 +303,11 @@ class DatabaseController {
             }
             
             // Check if exceeds limit
-            if ($wrongLogins > 4)
-                return false;
-            else
-                return true;
+            if ($wrongLogins < 5)
+                $success = true;
         }
+        
+        return $success;
     }
     
     public function markInvalidLogin() {
@@ -402,7 +403,7 @@ class DatabaseController {
         $success = false;
         
         // Make sure user has sufficient permissions
-        if ($this->permissions === self::ACTIVE_ADMIN_PERMISSION) {
+        if ($this->permissions === self::ACTIVE_ADMIN_PERMISSION()) {
 
             $accountNumber = $account->getAccountNumber();
 

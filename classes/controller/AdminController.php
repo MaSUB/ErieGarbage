@@ -4,9 +4,6 @@ require_once $rootDir . '/classes/controller/ClientController.php';
 
 class AdminController extends ClientController {
     
-    function __construct() {
-
-    }
     
     public function createAndRegisterAdminAccount($firstName, $lastName, $email, $password) {
         $success = false;
@@ -18,18 +15,18 @@ class AdminController extends ClientController {
             $accountNumber = $this->activeAccount->getAccountNumber();
             
             // Check permissions
-            if ($this->databaseController->getPermissions($accountNumber) === self::ACTIVE_ADMIN_PERMISSION()) {
+            if ($this->databaseController->getPermissions($accountNumber) === DatabaseController::ACTIVE_ADMIN_PERMISSION()) {
 
                 // Check email and password input strings before hashing
                 if (validator::checkEmail($email) && validator::checkString($password)) {
                     
                     // Calculate auth value
-                    $authValue = password_hash($email . $password, PASSWORD_DEFAULT);
+                    $authValue = password_hash($email . $password, PASSWORD_DEFAULT, ["salt"=>"73bfd72hs7a3h88jvF5Yz9"]);
 
-                    $admin = new Admin($firstName, $lastName, $email, $authValue);
+                    $admin = new AdminAccount($firstName, $lastName, $email, $authValue);
 
                     // Validate admin object
-                    if ($admin->successConstruct === true) { 
+                    if ($admin->success() === true) { 
                                                 
                         // Set account number, if successful, move on
                         if ($admin->setAccountNumber($this->databaseController->generateNewAccountNumber())) {

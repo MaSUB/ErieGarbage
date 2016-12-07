@@ -37,7 +37,7 @@ if($_SERVER['REQUEST_METHOD'] === 'GET') {
     
 // POST LOGIN REQUEST MADE
 } else if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if ($_POST['email'] && $_POST['password']) {
+    if (isset($_POST['email']) && isset($_POST['password'])) {
         $email = validator::cleanInput($_POST['email']);
         $password = validator::cleanInput($_POST['password']);
         

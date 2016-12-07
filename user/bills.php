@@ -2,6 +2,7 @@
 $rootDir = realpath($_SERVER["DOCUMENT_ROOT"]);
 require_once $rootDir .  '/classes/model/UserAccount.php';
 require_once $rootDir .  '/classes/view/View.php';
+require_once $rootDir . '/classes/controller/UserController.php';
 class BillsView extends View {
     
     private $billsTemplateHead = '<div class="content-bill"><div class="content-row"><div class="past-bills"<h2>All Bills</h2>';
@@ -11,8 +12,13 @@ class BillsView extends View {
         header("Location: " . View::UNAUTHORIZED_PAGE);
     }
     
+    function __construct() {
+        $this->clientController = new UserController();
+        $this->permissions = $this->clientController->getPermissions();
+    }
+    
     private function printBills() {
-        $bills = $this->databaseController->getActiveAccount()->getBills();
+        $bills = $this->clientController->getActiveAccount()->getBills();
 
         foreach($bills as $bill) {
             $pastBillEntry = '<div class="past-entry">
