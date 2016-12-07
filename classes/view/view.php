@@ -1,13 +1,15 @@
 <?php
 $rootDir = realpath($_SERVER["DOCUMENT_ROOT"]);
 
-require_once $rootDir . '/classes/controller/databaseController.php';
-require_once $rootDir . '/classes/view/header.php';
+require_once $rootDir . '/classes/controller/DatabaseController.php';
+require_once $rootDir . '/classes/view/Header.php';
 
 abstract class View {
 
+    // Define constants for page locations to be used in redirecting the client
     const LOGIN_PAGE = '/login.php';
     const LOGOUT_PAGE = '/logout.php';
+    const REGISTER_PAGE = '/register.php';
     const UNAUTHORIZED_PAGE = '/unauthorized.php';
     const HOME_PAGE = '/home.php';
     

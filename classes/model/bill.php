@@ -1,8 +1,8 @@
 <?php
 $rootDir = realpath($_SERVER["DOCUMENT_ROOT"]);
 
-require_once $rootDir . '/classes/input_validator.php'; // Provides functions to check input before use
-require_once $rootDir . '/classes/model/user.php';
+require_once $rootDir . '/classes/security/InputValidator.php'; // Provides functions to check input before use
+require_once $rootDir . '/classes/model/UserAccount.php';
 
 class Bill {
     private $userID; // user id string

@@ -1,12 +1,12 @@
 <?php
 $rootDir = realpath($_SERVER["DOCUMENT_ROOT"]);
 
-require_once $rootDir . '/classes/input_validator.php'; // Provides functions to check input before use
-require_once $rootDir . '/classes/model/address.php';
-require_once $rootDir . '/classes/model/bill.php';
-require_once $rootDir . '/classes/model/account.php';
+require_once $rootDir . '/classes/security/InputValidator.php'; // Provides functions to check input before use
+require_once $rootDir . '/classes/model/Address.php';
+require_once $rootDir . '/classes/model/Bill.php';
+require_once $rootDir . '/classes/model/Account.php';
 
-class User extends Account {
+class UserAccount extends Account {
     private $dateOfBirth; // string with date of birth
     private $bills; // array of bill objects
     private $address; // address object

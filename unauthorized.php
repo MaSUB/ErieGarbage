@@ -1,5 +1,5 @@
 <?php
-require_once 'classes/view/view.php';
+require_once 'classes/view/View.php';
 
 class UnauthorizedView extends View {
     private $message = 'account is not authorized to access this functionality</p>';

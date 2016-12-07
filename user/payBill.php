@@ -1,9 +1,9 @@
 <?php
 $rootDir = realpath($_SERVER["DOCUMENT_ROOT"]);
 
-require_once $rootDir . '/classes/controller/databaseController.php';
-require_once $rootDir . '/classes/view/header.php';
-require_once $rootDir . '/classes/view/view.php';
+require_once $rootDir . '/classes/controller/DatabaseController.php';
+require_once $rootDir . '/classes/view/Header.php';
+require_once $rootDir .  '/classes/view/View.php';
 
 class PayBillView extends View {
     

@@ -6,63 +6,25 @@ require_once $rootDir . '/classes/model/UserAccount.php';
 require_once $rootDir . '/classes/model/Account.php';
 require_once $rootDir . '/classes/model/Admin.php';
 require_once $rootDir .  '/classes/view/View.php';
-require_once $rootDir . '/classes/security/Logger.php';
 
 
-class DatabaseController {
-    // Constants declared as private static functions to assure privacy (php doesnt support private constants)
-    private static function STORE_DIR() { return ($GLOBALS['rootDir'] . '/store'); }
-    private static function ACCOUNTS_FILE_DIR() { return (self::STORE_DIR() . "/accounts/"); }
-    private static function CREDENTIALS_FILE() { return (self::STORE_DIR() ."/credentials/credentials.json"); }
-    private static function TOKENS_FILE() { return self::STORE_DIR() ."/credentials/tokens.json"; }
-    private static function PERMISSIONS_FILE() { return self::STORE_DIR() . "/credentials/permissions.json"; }
-    private static function FAILED_LOGINS_FILE() { return self::STORE_DIR() . "/credentials/login-limiter.json"; }
-    private static function PICKUP_TIMES_FILE() { return self::STORE_DIR() . "/management/pickup-times.json"; }
-    private static function BILLS_FILE() { return self::STORE_DIR() . "/management/bills.json"; }
-    private static function LOGIN_TIMEOUT() { return 15 * 60; } // in seconds (mins * 60)
-    private static function TOKEN_TIMEOUT() { return 30 * 60; } // in seconds (time untill token expires)
+class ClientController {
     
-    // Permission levels
-    public static function NO_PERMISSIONS() { return 'no-permissions'; }
-    public static function ACTIVE_USER_PERMISSION() { return 'user'; }
-    public static function ACTIVE_ADMIN_PERMISSION() { return 'admin'; }
-    public static function DISABLED_USER_PERMISSION() { return 'disabled-user'; }
-    
-    // Bill Due Date
-    const BILL_DUE_DAY = 1; // 1ST OF EVERY MONTH
-    
-    // Logging
-    private static function LOGGING_ENABLED() { return true; }
-    
-    // Store ip address requests to limit
-    private $failedLogins;
+    // Controller for file access and authentication
+    protected $databaseController;
     
     // stores whether user is authenticated or not
     private $authenticated = false;
     
     // stores the active account object authenticated
-    private $activeAccount = null;
+    protected $activeAccount = null;
     
-    // stores auth cookie to set upon redirection
-    private $authToken = null;
-        
     function __construct() {
-        
-        // Set default timezone
+        // Set default timezone for time functions
         date_default_timezone_set('America/New_York');
         
-        // Initiate logger
-        $this->logger = new Logger();
-        
-        // Load auth failed ips
-        $failedLogins = $this->readFile(self::FAILED_LOGINS_FILE());
-        if (!($failedLogins === null)) {
-            $this->failedLogins = $failedLogins;
-        } else {
-            // Couldn't read logins file
-            Logger::logError(Logger::FAILED_LOGINS_LOAD_ERROR);
-            header('Location: ' . View::ERROR_PAGE);
-        }
+        // Initialize database controller
+        $this->databaseController = new DatabaseController();
     }
     
     /*****************************/ 
@@ -70,324 +32,64 @@ class DatabaseController {
     /*****************************/
     
     public function authenticate($email, $password) {
-    // Authenticates a user with email and password credentials and returns the associated user object
+    // Authenticates a user with email and password credentials and loads into $activeAccount
     // Input: Email and Password Strings
-    // Output: Account object authenticated or null if failure to authenticate
-   
-        // Verify input strings are valid
-        if (validator::checkEmail($email) && validator::checkPassword($password)) {
+    // Output: Boolean value ($success) indicating successful or failed login
+        $success = false;
+        // Make sure user hasn't exceeded incorrect auth limit.
+        if ($this->$databaseController->verifyRequestLimit()) {
+            // Verify input strings are valid
+            if (validator::checkEmail($email) && validator::checkPassword($password)) {
 
-            // password hash of email and password concatenation as auth value
-            $authValue = password_hash($email . $password, DEFAULT_PASSWORD);
-            
-            // Validate authentication and get account number
-            $accountNumber = $this->validateAuthFromTable($authValue);
-            if ($accountNumber === null) {
-                // Invalid login, marks it for limiting 
-                $this->markInvalidLogin();
-                header('Location: ' . View::LOGIN_PAGE . '?fail=true'); 
-            } else {
-                // Login successful! 
+                $account = $this->databaseController->authenticate($email, $password);
                 
-                // Load account
-                $account = $this->loadAccount($accountNumber)
-                    
-                // Check account successfully loaded.
+                // Clean up email and password
+                $email = null;
+                $password = null;
+                
+                // Check account was authenticated
                 if (!($account === null)) {
-                
-                    // Generate auth token for user session
-                    $this->generateAuthToken($accountNumber);
-                    
-                    // Saves auth cookie onto user's browser and redirects to home page
-                    $this->setCookieAndRedirect();
+                    $this->activeAccount = $account;
+                    $success = true;
                     
                 } else {
-                    // Log account load error and redirect user to the error page
-                    Logger::logError(Logger::ACCOUNT_LOAD_ERROR, $accountNumber);
-                    header("Location: " . View::ERROR_PAGE);
+                    // Login request denied (invalid credentials)
+                    $this->databaseController->markInvalidLogin();
+                    
+                    // Redirect to login failed page
+                    header('Location: ' . View::LOGIN_PAGE . '?fail=true');
                 }
+                 
+            } else {
+                // Invalid inputs: mark as invalid login
+                $this->databaseController->markInvalidLogin();
+                
+                // Log and redirect to login page
+                Logger::logError(Logger::INVALID_INPUT_ERROR);
+                header('Location: ' . View::LOGIN_PAGE);
             }
-        } else {
-            // Invalid inputs 
-            $this->markInvalidLogin();
-        }
+            
+        } else
+            // 'User timed out'; 
+            header('Location: ' . View::TIMEOUT_PAGE);
         
-    return $account;
+    return $success;
         
     }
     
-    public function logout($accountNumber) {
-    // Logs the account number out and deletes associated tokens
-    // Input: Account number string
+    public function authenticateToken($authToken) {
+    // Authenticates the auth token via the database controller and sets to active account
+    // Input: AuthToken object
     // Output: Success value (true/false)
         $success = false;
         
-        $tokens = $this->readFile(self::TOKENS_FILE());
-        if (!($tokens === null)) {
-            // Make sure account number has active session in
-            if (isset($tokens[$accountNumber])) {
-                
-                // Delete the token from store
-                unset($tokens[$accountNumber]);
-
-                // Update tokens file
-                if ($this->overwriteFile(self::TOKENS_FILE(), $tokens))
-                    $success = true;
-            } else
-                Logger::log("Logout function used on account number with no token: " . $accountNumber);
-        } else {
-            // Log token file load error and redirect to error page.
-            Logger::logError(TOKENS_LOAD_ERROR);
-            header('Location: ' . View::ERROR_PAGE);
+        $account = $this->databaseController->authenticateToken($authToken);
+        if (!($account === null)) {
+            $this->activeAccount = $account;
+            $success = true;
         }
         
         return $success;
-    }
-    
-    private function validateAuthFromTable($authValue) {
-    // Load authentication tables from JSON file and checks if account id exists for it
-    // Input: authValue string containing the hashed credentials value
-    // Output: Account number string associated with credentials or null if not found
-        $accountNumber = null;
-        $credentialsTable = $this->readFile(self::CREDENTIALS_FILE());
-        // Verify reading was successful
-            if (!($credentialsTable === null)) {
-                // If auth value is present, accept login (account exists)
-                if (isset($credentialsTable[$authValue])) { 
-                    // Success login - save account number
-                    $accountNumber = $credentialsTable[$authValue];
-                }  
-            } else {
-                // Log credentials file load error and redirect to error page
-                Logger::logError(Logger::CREDENTIALS_LOAD_ERROR);
-                header('Location: ' . View::ERROR_PAGE);
-            }
-        
-        return $accountNumber;
-    }       
-        
-    public function authenticateToken($authToken) {
-    // Validates whether a token contains an active session
-    // Input: authToken object with {id, token, expiry}
-    // Output: Boolean value ($valid) indicating if token correspons to active session.
-        $account = null;
-        // Validate token
-        if (validator::checkAuthToken($authToken)) {
-            $tokens = $this->readFile(self::TOKENS_FILE());
-            
-            // Check file properly read
-            if (!($tokens === null)) {
-                $accountNumber = $authToken->id;
-
-                // Make sure there is a stored token for the account number
-                if (isset($tokens[$accountNumber])) {
-                    // Validate that tokens match
-                    if ($tokens[$accountNumber][token] === $authToken->token) {
-                        // Validate token has not expired
-                        if (time() < $tokens[$accountNumber][expiry]) {
-                            
-                            // Load account
-                            $account = $this->loadAccount($accountNumber);
-                            
-                            // Make sure account load was successful
-                            if (($account === null)) {
-                                Logger::logError(Logger::ACCOUNT_LOAD_ERROR); 
-                                header('Location: ' . View::ERROR_PAGE);
-                            }
-                            
-                        } else 
-                            // Token expired, redirect to login page
-                            header('Location: ' . View::LOGIN_PAGE);
-                        
-                    } else {
-                        // Stored token for account does not match the one supplied
-                        Logger::logError(Logger::TOKEN_MISMATCH_ERROR);
-                        header('Location: ' . View::ERROR_PAGE);
-                    }
-                } else 
-                    ; // Token not found locally: account not authenticated
-            } else {
-                // Tokens file could not be loaded
-                Logger::logError(Logger::TOKENS_LOAD_ERROR);
-                header('Location: ' . View::ERROR_PAGE);
-            }
-        } else {
-            // Validation of auth token failed
-            Logger::logError(Logger::INVALID_INPUT_ERROR);
-            header("Location: " . View::ERROR_PAGE);
-        }
-        
-        return $account;
-    }
-    
-    private function generateAuthToken($accountNumber) {
-    // Generates an auth token for the account number, and stores locally for future authentication
-    // Input: Verified account number to associate with auth token (string)
-    // Output: Authentication token randomized value associated with account (string)
-        
-        // Generate random, secure 50 byte string and md5 hash it
-        $randomToken = md5(openssl_random_pseudo_bytes(50));
-        
-        // Generate auth token object
-        $authToken = array('id' => $accountNumber, 'token' => $randomToken, 'expiry' => time()+self::TOKEN_TIMEOUT());
-        
-        // Update token locally for future reference
-        // Make sure file exists
-        $tokens = $this->readFile(self::TOKENS_FILE());
-        
-        if (!($tokens === null)) {
-
-            // Add/update token entry in object for account number
-            $tokens[$accountNumber] = $authToken;
-            
-            // Update file
-            $this->overwriteFile(self::TOKENS_FILE(), $tokens);
-
-        } else {
-            throw new Exception("Tokens file cannot be read.");
-        }
-       
-        $this->authToken = $authToken;
-        
-        return $randomToken;
-    }
-    
-    private function setCookieAndRedirect() {
-        if (isset($this->authToken)) {
-            // Set the user's cookie
-            setcookie('eg-auth', json_encode($this->authToken), time()+self::TOKEN_TIMEOUT(), '/');
-            // Redirect home
-            header('Location: ' . View::HOME_PAGE);
-            exit; 
-        }
-    }
-    
-    // ************************* \\
-    // **** AUTH PROTECTION **** \\
-    // ************************* \\
-    
-    private function verifyRequestLimit() {
-    // Verifies the user's ip against the log of incorrect logins. 
-    // Output: Returns false if the request limit was exceeded by user, true otherwise.
-    
-        if (validator::checkIP($_SERVER['REMOTE_ADDR'])) {
-            $ip = $_SERVER['REMOTE_ADDR'];
-            // Get the recent ip requests logged in failedLogins variable.
-            $recentRequests = $this->failedLogins[$ip];
-            
-            $wrongLogins = 0;
-            $earliestTime = $recentRequests[0];
-            $counter = 0;
-            $recentRequestsUpdated = false;
-            
-            if ($recentRequests) {
-                // Iterate through recent requests in array
-                foreach($recentRequests as $requestTime) {
-
-                    if ($requestTime < time() + self::LOGIN_TIMEOUT()) {
-                    // Counts towards timeout;
-                        $wrongLogins++;
-
-                        // Update earliest time
-                        if ($earliestTime > $requestTime)
-                            $earliestTime = $requestTime;
-                    } else {
-                    // Unset value
-                        unset($recentRequests[$counter]);
-                        $recentRequestsUpdated = true;
-                    }
-
-                    $counter++;      
-                }
-
-                // Update recent requests file if necessary
-                if ($recentRequestsUpdated) {
-                    $this->failedLogins[$ip] = array_values($recentRequests);
-                    $this->overwriteFile(self::FAILED_LOGINS_FILE(), $this->failedLogins);
-                }
-            }
-            
-            // Check if exceeds limit
-            if ($wrongLogins >= 4)
-                return false;
-            else
-                return true;
-        }
-    }
-    
-    private function markInvalidLogin() {
-        if (validator::checkIP($_SERVER['REMOTE_ADDR'])) {
-            $serverIP = $_SERVER['REMOTE_ADDR'];
-            
-            // Push the time onto the array under 
-            if (isset($this->failedLogins[$serverIP])) {
-                array_push($this->failedLogins[$serverIP], time());
-                
-                // Update the failed logins store   
-                $this->updateFailedLoginsFile();
-            }
-            
-            
-            else {
-                $this->failedLogins[$serverIP] = [ time() ];
-            }
-        }
-    }
-    
-    // *************************** \\
-    // ******* PERMISSIONS ******* \\
-    // *************************** \\
-    
-    public function getPermissions($accountNumber) {
-    // Gets permissions for the account number
-    // Input: Verified account number string
-    // Output: Permissions string const
-        
-        // Assume no permissions unless reassigned
-        $permissions = self::NO_PERMISSIONS();
-        
-        // Read file
-        $permissionsObject = $this->readFile(self::PERMISSIONS_FILE());
-
-        // Verify file properly read
-        if (!($permissionsObject === null))
-            $permissions = $permissionsObject[$accountNumber];
-        else 
-            throw new Exception("(1): File Error: Permissions");
-    
-        return $permissions;
-    }
-    
-    private function setUserPermissions($accountNumber) {
-    // Sets the permission level for the associated account number
-        $success = false;
-                
-        $permissionsObject = $this->readFile(self::PERMISSIONS_FILE());
-        if (!($permissionsObject === NULL)) {
-            $permissionsObject[$accountNumber] = self::ACTIVE_USER_PERMISSION();
-            if ($this->overwriteFile(self::PERMISSIONS_FILE(), $permissionsObject)) 
-                $success = true;
-                    
-        } else 
-            throw new Exception("Permissions file could not be read");
-
-        return $success;
-    }
-    
-    private function setAdminPermissions($accountNumber) {
-    // Sets the permissions for the account number to admin
-        if ($this->authenticated) {
-            if ($this->getPermissions() === self::ACTIVE_ADMIN_PERMISSION()) {
-                $permissions = $this->readFile(self::PERMISSIONS_FILE());
-                if (!($permissions === null)) {
-                    $permissions[$accountNumber] = self::ACTIVE_ADMIN_PERMISSION();
-
-                    if ($this->overwriteFile(self::PERMISSIONS_FILE(), $permissions)) 
-                        $success = true;
-                }
-                
-            }
-        }
     }
     
     /********************************/ 
@@ -401,7 +103,7 @@ class DatabaseController {
         if ($this->verifyRequestLimit()) {
         
             // Check permissions
-            if ($this->getPermissions() === self::ACTIVE_ADMIN_PERMISSION()) {
+            if ($this->databaseController->getPermissions($this->activeAccount->getAccountNumber()) === self::ACTIVE_ADMIN_PERMISSION()) {
 
                 if (validator::checkEmail($email) && validator::checkString($password)) {
                     // Calculate auth value
@@ -454,7 +156,7 @@ class DatabaseController {
                             $authValue = hash('md5', $email . $password);
                             
                             // Create account object
-                            $userAccount = new User($firstName, $lastName, $email, $authValue, $addressObject, $dateOfBirth);
+                            $userAccount = new UserAccount($firstName, $lastName, $email, $authValue, $addressObject, $dateOfBirth);
                             
                             // Register account into system
                             $this->registerUserAccount($userAccount, $authValue);
@@ -645,32 +347,6 @@ class DatabaseController {
           //  throw new Exception("Error: file " . $fileName . " does not exist");
     
         return $success;
-    }
-    
-    private function loadAccount($accountNumber) {
-    // Loads the account info for a registered account number.
-    // Input: Verified AccountNumber string
-    // Output: boolean with success or failure
-        $success = false;
-        $accountFileName = self::ACCOUNTS_FILE_DIR() . $accountNumber . '.json';
-        $account = $this->readFile($accountFileName);
-        if (!($account === null)) { 
-            var_dump($account);
-            // Assign to local class variable
-            if ($account['accountType'] == Account::USER_ACCOUNT)
-                $this->activeAccount = User::load($account);
-            else if ($account['accountType'] == Account::ADMINISTRATOR_ACCOUNT)
-                $this->activeAccount = Admin::load($account);
-            else
-                throw new Exception("Couldn't load object");
-            
-            $this->authenticated = true;
-            $success = true;
-            
-        } else
-            throw new Exception("Could not read account file.");       
-        
-        return success;
     }
     
     private function saveAccountObject($account) {

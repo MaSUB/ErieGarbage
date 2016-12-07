@@ -1,7 +1,7 @@
 <?php //    this is the content for the UserHome page.
 $rootDir = realpath($_SERVER["DOCUMENT_ROOT"]);
-require_once $rootDir . '/classes/view/view.php';
-require_once $rootDir . '/classes/input_validator.php';
+require_once $rootDir .  '/classes/view/View.php';
+require_once $rootDir . '/classes/security/InputValidator.php';
 
 class CreateAdminView extends View {
     private $form = '<div class="content-login">

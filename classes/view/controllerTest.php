@@ -1,6 +1,6 @@
 <?php
-require_once '../controller/databaseController.php';
-require_once '../model/user.php';
+require_once '../controller/DatabaseController.php';
+require_once '../model/UserAccount.php';
 
 class ControllerTester {
 
@@ -52,10 +52,13 @@ class ControllerTester {
         $databaseController = new DatabaseController();
         $databaseController->addNewBillToAll();
     }
+    
 }
 
-$tester = new ControllerTester();
-$tester->addBillToAll();
+//$tester = new ControllerTester();
+//$tester->addBillToAll();
 //$tester->testTokenValidation();
+;
+
 
 ?>

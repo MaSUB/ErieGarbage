@@ -1,8 +1,8 @@
 <?php
 $rootDir = realpath($_SERVER["DOCUMENT_ROOT"]);
 
-require_once $rootDir . '/classes/model/account.php';
-require_once $rootDir . '/classes/input_validator.php'; 
+require_once $rootDir . '/classes/model/Account.php';
+require_once $rootDir . '/classes/security/InputValidator.php'; 
 
 class Admin extends Account {
     function __construct($newFirstName, $newLastName, $newEmail, $authValue) {

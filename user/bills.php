@@ -1,19 +1,11 @@
 <?php //    this is the content for the UserHome page.
 $rootDir = realpath($_SERVER["DOCUMENT_ROOT"]);
-require_once $rootDir .  '/classes/model/user.php';
-require_once $rootDir . '/classes/view/view.php';
+require_once $rootDir .  '/classes/model/UserAccount.php';
+require_once $rootDir .  '/classes/view/View.php';
 class BillsView extends View {
     
-    private $billsTemplateHead;
-    private $billsTemplateTail;
-    
-    function __construct() {
-        parent::__construct();
-        
-        $this->billsTemplateHead = '<div class="content-bill"><div class="content-row"><div class="past-bills"<h2>All Bills</h2>';
-        $this->billsTemplateTail = '</div></div></div>';
-    }
-    
+    private $billsTemplateHead = '<div class="content-bill"><div class="content-row"><div class="past-bills"<h2>All Bills</h2>';
+    private $billsTemplateTail = '</div></div></div>';    
     
     protected function printUnauthenticatedHeader() {
         header("Location: " . View::UNAUTHORIZED_PAGE);

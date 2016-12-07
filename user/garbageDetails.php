@@ -1,7 +1,7 @@
 <?php //    this is the content for the UserHome page.
 $rootDir = realpath($_SERVER["DOCUMENT_ROOT"]);
-require_once $rootDir . '/classes/view/header.php';
-require_once $rootDir . '/classes/view/view.php';
+require_once $rootDir . '/classes/view/Header.php';
+require_once $rootDir .  '/classes/view/View.php';
 
 class GarbageDetailsView extends View {
     

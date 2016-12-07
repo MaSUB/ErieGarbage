@@ -1,6 +1,7 @@
 <?php
-require_once 'classes/input_validator.php';
-require_once 'classes/controller/databaseController.php';
+require_once 'classes/security/InputValidator.php';
+require_once 'classes/controller/DatabaseController.php';
+require_once 'classes/view/View.php';
     
 // POST LOGIN REQUEST MADE
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -11,17 +12,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             if ($controller->authenticateToken($authCookie)) {
                 // Authentication successful
                 $controller->logout();
-                header('Location: /login.php');
+                
+                header('Location: ' . View::LOGIN_PAGE);
                 exit;
+                
             } else {
-                header('Location: /login.php'); // Failed log in, try again
+                header('Location: ' . View::LOGIN_PAGE); // Failed log in, try again
                 exit;
             }
         } else
-            header("Location: /login.php");
+            header("Location: " . View::LOGIN_PAGE);
             ; // ('Illegal auth token');
     } else 
-        header('Location: /login.php')
+        header('Location: ' . View::LOGIN_PAGE);
        ; // ('Cookie not set');    
 }
 ?>

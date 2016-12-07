@@ -1,8 +1,8 @@
 <?php 
 $rootDir = realpath($_SERVER["DOCUMENT_ROOT"]);
-require_once $rootDir . '/classes/input_validator.php';
-require_once $rootDir . '/classes/controller/databaseController.php';
-require_once $rootDir . '/classes/view/view.php';
+require_once $rootDir . '/classes/security/InputValidator.php';
+require_once $rootDir . '/classes/controller/DatabaseController.php';
+require_once $rootDir .  '/classes/view/View.php';
 
 class DeleteAccountView extends View {
     
@@ -28,7 +28,7 @@ class DeleteAccountView extends View {
                     header('Location: ' . View::UNAUTHORIZED_PAGE);
 
             } else if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                $this->databaseController->deleteAccount();
+                $this->databaseController->deleteActiveAccount();
                 header('Location: ' . View::LOGIN_PAGE);
             }
         } else
