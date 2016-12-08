@@ -2,8 +2,7 @@
 $rootDir = realpath($_SERVER["DOCUMENT_ROOT"]);
 require_once $rootDir . '/classes/controller/ClientController.php';
 
-class AdminController extends ClientController {
-    
+class AdminController extends ClientController { 
     
     public function createAndRegisterAdminAccount($firstName, $lastName, $email, $password) {
         $success = false;
@@ -88,7 +87,40 @@ class AdminController extends ClientController {
         return $success;
         
     }
-    
+    public function findCustomer($firstName, $lastName, $email) {
+    // Finds customer by first and last name OR email
+    // Input: firstName, lastname, email strings (firstName, lastName, null) OR (null, null, email) is sufficient 
+    // Output: Account object associated with customer
+        $customer = null;
+        // If email is passed in as not null
+        if (!($email === null)) {
+            // Check inputs are valid
+            if (validator::checkEmail($email)) {
+                $customer = $this->databaseController->findCustomerByEmail($email);
+            } else {
+                // Invalid input
+                Logger::logError(Logger::INVALID_INPUT_ERROR);
+                header("Location: " . View::ERROR_PAGE);
+                exit;
+            }
+        // else if first name and last name passwed in
+        } else if (!(firstName === null) && !(lastName === null)) {
+            if (validator::checkName($firstName) && validator::checkName($lastName)) {
+                $customer = $this->databaseController->findCustomerByName($firstName, $lastName);
+            } else {
+                // Invalid input
+                Logger::logError(Logger::INVALID_INPUT_ERROR);
+                header("Location: " . View::ERROR_PAGE);
+                exit;
+            }
+        } else {
+            // Insufficient information
+            Logger::log("Insufficient information on findCustomer");
+            header("Location: " . View::ERROR_PAGE);
+            exit;
+        }
+        return $customer;
+    }
     
   
 }

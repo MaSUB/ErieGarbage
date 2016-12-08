@@ -15,6 +15,7 @@ abstract class View {
     const ADMIN_REGISTER_PAGE = '/admin/createAdmin.php';
     const TIMEOUT_PAGE = '/timeout.php';
     const ACCOUNT_SETTINGS_PAGE = '/user/accountSettings.php';
+    const ERROR_PAGE = '/error.php';
     
     protected $loggedIn; // boolean value
     protected $clientController; // database controller object

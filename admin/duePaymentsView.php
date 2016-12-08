@@ -14,7 +14,7 @@ class DuePaymentsView extends View{
         parent::__construct();
         
         
-        if ($this->loggedIn) {
+        if ($this->clientController->isAuthenticated()) {
             if ($this->permissions === DatabaseController::ACTIVE_ADMIN_PERMISSION()) {
                 $this->billsTemplateHead = '<div class="content-bill"><div class="content-row"><div class="past-bills"<h2>All Bills</h2>';
                 $this->billsTemplateTail = '</div></div></div>';

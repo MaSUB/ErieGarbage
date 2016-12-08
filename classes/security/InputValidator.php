@@ -73,7 +73,7 @@ class validator {
     
     public static function checkEmail($email) {
         if (self::checkString($email)) {                 // check string
-            $email = filter_var($email, FILTER_SANITIZE_EMAIL); // removes illegal characters
+            //$email = filter_var($email, FILTER_SANITIZE_EMAIL); // removes illegal characters
             if (filter_var($email, FILTER_VALIDATE_EMAIL))  // validates email address
                 return true;
         }
@@ -95,12 +95,13 @@ class validator {
     }
     
     public static function checkName($name) {
-        if (self::checkString($name)) {
-            $cleanName = self::cleanInput($name);
-            if ($cleanName == $name) {
+        if (self::checkString($name)) {    
+            // "Only letters and white space allowed"; 
+            if (preg_match("/^[a-zA-Z ]*$/",$name)) {
                 return true;
             }
         }
+        
         return false;
     }
     

@@ -509,7 +509,7 @@ class DatabaseController {
             } else 
                 throw new Exception("Error opening " . $fileName . " file");
         } else
-            throw new Exception("Error: file " . $fileName . " does not exist");
+            ; // throw new Exception("Error: file " . $fileName . " does not exist");
     
         return $value;
     }
@@ -887,6 +887,62 @@ class DatabaseController {
                 throw new Exception("Credentials file could not be read.");
         } else
             header('Location: ' . $View::UNAUTHORIZED_PAGE);
+    }
+    
+    public function findCustomerByEmail($email) {
+    // Finds customer account by email
+    // Input: Email string
+    // Output: Account object or null if not found
+        // Verify permissions
+        if ($this->permissions === self::ACTIVE_ADMIN_PERMISSION()) {
+            // Get permissions to extract account numbers from them
+            $permissions = self::readFile(self::PERMISSIONS_FILE());
+            if (!($permissions === null)) {
+                foreach($permissions as $accountNumber => $permission) {
+                    // Load the account
+                    $account = $this->loadAccount($accountNumber);
+                    // Check file read success
+                    if (!($account === null)) {
+                        // Verify email matches via case insensitive comparisson
+                        if (strcasecmp($email === $account->getEmail()) === 0) {
+                            // Found match, return it
+                            return $account;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return null;
+        
+    }
+    
+    public function findCustomerByName($firstName, $lastName) {
+    // Finds costumer account by name
+    // Input: Email string
+    // Output: Account object or null if not found
+        // Verify permissions
+        if ($this->permissions === self::ACTIVE_ADMIN_PERMISSION()) {
+            // Get permissions to extract account numbers from them
+            $permissions = self::readFile(self::PERMISSIONS_FILE());
+            if (!($permissions === null)) {
+                // Iterate
+                foreach($permissions as $accountNumber => $permission) {
+                    // Load the account
+                    $account = $this->loadAccount($accountNumber);
+                    // Check file read success
+                    if (!($account === null)) {
+                        // Case insensitive comparisson of given names and account names
+                        if (strcasecmp($firstName, $account->getFirstName()) === 0 && strcasecmp($lastName, $account->getLastName()) === 0) {
+                            // Found match! Return it.
+                            return $account;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return null;
     }
     
     //  ***************************** \\
